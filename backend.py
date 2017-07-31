@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from database_setup import Base, Restaurant, MenuItem
 #from flask.ext.sqlalchemy import SQLAlchemy
 import datetime
-
+import json
 
 engine = create_engine('sqlite:///restaurantmenu.db')
 
@@ -23,7 +23,7 @@ class webServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             if self.path.endswith("/"):
-                self.send_response(200)
+                self.send_response(301)
                 self.send_header('Content-type', 'text/html')
                 self.send_header('location', '/restaurants')
                 self.end_headers()
@@ -45,22 +45,30 @@ class webServerHandler(BaseHTTPRequestHandler):
                     output += item[0]
                     output+="</h3>"
                     output+='''<a href="/restaurants/%s/edit">edit</a></br>''' % item[1]
-                    output+='''<a href="/restaurants/%s/delete">delete</a></br></br>''' % item[1]
+                    output+='''<a href="/restaurants/%s/delete">delete</a></br>''' % item[1]
+                    output+='''<a href="/restaurants/%s/menu/JSON">json</a></br></br>''' % item[1]
+
                 output += "</body></html>"
                 self.wfile.write(output)
                 print ("\nrender the /restaurants page\n")
                 return
-            
-            
+
+
             if self.path.endswith("/JSON"): #/restaurants/<int:restaurant_id>/menu/JSON
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
                 restaurantID = self.path.split("/")[2]
                 restaurant = session.query(Restaurant).filter_by(id=restaurantID).one() # you may use it in the future
                 items = session.query(MenuItem).filter_by(
                         restaurant_id=restaurantID).all()
-                return jsonify(MenuItems=[i.serialize for i in items])
-            
+                output= json.dumps([i.serialize for i in items])
+                self.wfile.write(output)
+                print ("\n output the json items\n")
+                return
 
-            
+
             if self.path.endswith("/restaurants/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')

@@ -41,7 +41,17 @@ class webServerHandler(BaseHTTPRequestHandler):
                 self.wfile.write(output)
                 print ("\nrender the /restaurants page\n")
                 return
+            
+            
+            if self.path.endswith("/JSON"): #/restaurants/<int:restaurant_id>/menu/JSON
+                restaurantID = self.path.split("/")[2]
+                restaurant = session.query(Restaurant).filter_by(id=restaurantID).one() # you may use it in the future
+                items = session.query(MenuItem).filter_by(
+                        restaurant_id=restaurantID).all()
+                return jsonify(MenuItems=[i.serialize for i in items])
+            
 
+            
             if self.path.endswith("/restaurants/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')

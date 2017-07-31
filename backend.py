@@ -22,6 +22,15 @@ class webServerHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         try:
+            if self.path.endswith("/"):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.send_header('location', '/restaurants')
+                self.end_headers()
+                print("\nredirect to /restaurants\n")
+                return
+
+
             if self.path.endswith("/restaurants"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
